@@ -23,4 +23,11 @@ class ApiClient {
       throw Exception('API Error: ${response.statusCode}');
     }
   }
+
+  Future<void> delete(String path) async {
+    final response = await _dio.delete(path);
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete: ${response.statusCode}');
+    }
+  }
 }

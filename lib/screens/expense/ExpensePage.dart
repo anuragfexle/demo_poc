@@ -25,6 +25,14 @@ class _ExpensePageState extends State<ExpensePage> {
   bool _showChart = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.params == 'show_chart') {
+      _showChart = true;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -78,50 +86,63 @@ class _ExpensePageState extends State<ExpensePage> {
                     return const Center(child: Text('No expenses found.'));
                   }
 
-                  if (_showChart) {
-                    return ExpenseChart(expenses: expenses);
-                  }
-
-                  return ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: expenses.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final expense = expenses[index];
-
-                      return Dismissible(
-                        key: ValueKey(expense.id),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 16),
-                          color: const Color.fromARGB(255, 247, 181, 176),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        confirmDismiss: (direction) async {
-                          return await showDialog<bool>(
-                            context: context,
-                            builder: (context) {
-                              return CustomAlertDialog(
-                                title: 'Delete Expense',
-                                message:
-                                    'Are you sure you want to delete ${expense.name}?',
-                                onCancel: () =>
-                                    Navigator.of(context).pop(false),
-                                onConfirm: () =>
-                                    Navigator.of(context).pop(true),
-                              );
-                            },
-                          );
-                        },
-                        onDismissed: (_) {
-                          context.read<ExpenseBloc>().add(
-                            DeleteExpenseEvent(expense.id),
-                          );
-                        },
-                        child: ExpenseListItem(expense: expense),
-                      );
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<ExpenseBloc>().add(LoadExpenses());
                     },
+                    child: Builder(
+                      builder: (context) {
+                        if (_showChart) {
+                          return ExpenseChart(expenses: expenses);
+                        }
+
+                        return ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: expenses.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final expense = expenses[index];
+
+                            return Dismissible(
+                              key: ValueKey(expense.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 16),
+                                color: const Color.fromARGB(255, 247, 181, 176),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              confirmDismiss: (direction) async {
+                                return await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) {
+                                    return CustomAlertDialog(
+                                      title: 'Delete Expense',
+                                      message:
+                                          'Are you sure you want to delete ${expense.name}?',
+                                      onCancel: () =>
+                                          Navigator.of(context).pop(false),
+                                      onConfirm: () =>
+                                          Navigator.of(context).pop(true),
+                                    );
+                                  },
+                                );
+                              },
+                              onDismissed: (_) {
+                                context.read<ExpenseBloc>().add(
+                                  DeleteExpenseEvent(expense.id),
+                                );
+                              },
+                              child: ExpenseListItem(expense: expense),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   );
                 }
 

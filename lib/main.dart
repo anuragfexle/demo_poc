@@ -1,7 +1,7 @@
 import 'package:demo_poc/repositories/init_dependencies.dart';
 import 'package:demo_poc/routes/app_routes.dart';
 import 'package:demo_poc/routes/route_generator.dart';
-import 'package:demo_poc/screens/BudgetPage.dart';
+import 'package:demo_poc/screens/budget/BudgetPage.dart';
 import 'package:demo_poc/screens/ProfilePage.dart';
 import 'package:demo_poc/screens/expense/ExpensePage.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +13,17 @@ import 'bloc/theme/theme_cubit.dart';
 import 'config/app_theme.dart';
 import 'dao/expense_hive_dao.dart';
 import 'repositories/expense_repository.dart';
+
+import 'package:demo_poc/bloc/profile/profile_bloc.dart';
+import 'package:demo_poc/bloc/profile/profile_event.dart';
+import 'package:demo_poc/dao/profile_hive_dao.dart';
+import 'package:demo_poc/repositories/profile_repository.dart';
+
+import 'package:demo_poc/bloc/budget/budget_bloc.dart';
+import 'package:demo_poc/bloc/budget/budget_event.dart';
+import 'package:demo_poc/dao/budget_dao.dart';
+import 'package:demo_poc/dao/budget_hive_dao.dart';
+import 'package:demo_poc/repositories/budget_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,11 +37,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expenseRepository = ExpenseRepository(ExpenseHiveDao());
+    final budgetRepository = BudgetRepository(BudgetDao(), BudgetHiveDao());
+    final profileRepository = ProfileRepository(ProfileHiveDao());
 
     return MultiBlocProvider(
       providers: [
         BlocProvider(
           create: (_) => ExpenseBloc(expenseRepository)..add(LoadExpenses()),
+        ),
+        BlocProvider(
+          create: (_) => BudgetBloc(budgetRepository)..add(LoadBudgets()),
+        ),
+        BlocProvider(
+          create: (_) => ProfileBloc(profileRepository)..add(LoadProfile()),
         ),
         BlocProvider(create: (_) => ThemeCubit()),
       ],
